@@ -35,6 +35,7 @@ type Sale = {
   product_id?: number;
   quantity?: number;
   total_price: number;
+  brand?: string | null;
 };
 
 type ProductCardProps = {
@@ -47,13 +48,44 @@ type ProductCardProps = {
   saving: number | null;
   removing: number | null;
   selling: number | null;
-  onRestockChange: (productId: number, value: string) => void;
-  onRemoveChange: (productId: number, value: string) => void;
-  onSaleChange: (productId: number, value: string) => void;
+
+  selectedRefillBrand: string;
+  refillOpen: boolean;
+  refillBrands: string[];
+
+  onRestockChange: (
+    productId: number,
+    value: string
+  ) => void;
+
+  onRemoveChange: (
+    productId: number,
+    value: string
+  ) => void;
+
+  onSaleChange: (
+    productId: number,
+    value: string
+  ) => void;
+
   onRestock: (productId: number) => void;
   onRemove: (productId: number) => void;
-  onSell: (product: Product) => void;
-  onUpdatePrice: (productId: number, currentPrice: number) => void;
+
+  onSell: (
+    product: Product,
+    selectedBrand?: string
+  ) => void;
+
+  onUpdatePrice: (
+    productId: number,
+    currentPrice: number
+  ) => void;
+
+  onRefillToggle: () => void;
+
+  onRefillBrandChange: (
+    brand: string
+  ) => void;
 };
 
 function ProductCard({
@@ -66,6 +98,11 @@ function ProductCard({
   saving,
   removing,
   selling,
+
+  selectedRefillBrand,
+  refillOpen,
+  refillBrands,
+
   onRestockChange,
   onRemoveChange,
   onSaleChange,
@@ -73,6 +110,9 @@ function ProductCard({
   onRemove,
   onSell,
   onUpdatePrice,
+
+  onRefillToggle,
+  onRefillBrandChange,
 }: ProductCardProps) {
   const stockStatus =
     quantity === 0
@@ -89,7 +129,9 @@ function ProductCard({
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="w-11 h-11 rounded-xl bg-slate-950 text-white flex items-center justify-center font-black mb-4">
-              {product.category === "refill" ? "G" : "C"}
+              {product.category === "refill"
+                ? "G"
+                : "C"}
             </div>
 
             <h3 className="font-bold text-lg text-slate-900">
@@ -118,7 +160,8 @@ function ProductCard({
           </p>
 
           <p className="text-3xl font-black text-slate-950 mt-1">
-            KSh {Number(product.price).toLocaleString()}
+            KSh{" "}
+            {Number(product.price).toLocaleString()}
           </p>
         </div>
 
@@ -169,18 +212,28 @@ function ProductCard({
                   e.target.value
                 )
               }
-              onClick={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
+              onClick={(e) =>
+                e.stopPropagation()
+              }
+              onFocus={(e) =>
+                e.stopPropagation()
+              }
               className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-slate-900"
             />
 
             <button
               type="button"
-              onClick={() => onRestock(product.id)}
-              disabled={saving === product.id}
+              onClick={() =>
+                onRestock(product.id)
+              }
+              disabled={
+                saving === product.id
+              }
               className="bg-slate-950 text-white px-4 rounded-xl font-bold disabled:opacity-50 hover:bg-slate-800 transition"
             >
-              {saving === product.id ? "..." : "Add"}
+              {saving === product.id
+                ? "..."
+                : "Add"}
             </button>
           </div>
         </div>
@@ -205,14 +258,20 @@ function ProductCard({
                     e.target.value
                   )
                 }
-                onClick={(e) => e.stopPropagation()}
-                onFocus={(e) => e.stopPropagation()}
+                onClick={(e) =>
+                  e.stopPropagation()
+                }
+                onFocus={(e) =>
+                  e.stopPropagation()
+                }
                 className="w-full rounded-xl border border-red-200 px-3 py-2.5 outline-none focus:ring-2 focus:ring-red-500"
               />
 
               <button
                 type="button"
-                onClick={() => onRemove(product.id)}
+                onClick={() =>
+                  onRemove(product.id)
+                }
                 disabled={
                   removing === product.id ||
                   quantity === 0
@@ -226,47 +285,181 @@ function ProductCard({
             </div>
 
             <p className="text-xs text-slate-400 mt-2">
-              Use this to correct accidentally added stock.
+              Use this to correct accidentally
+              added stock.
             </p>
           </div>
         )}
 
-        {/* RECORD SALE */}
+        {/* RECORD SALE / REFILL */}
         <div className="mt-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-            Record Sale
-          </p>
+          {product.category === "refill" ? (
+            <>
+              {!refillOpen ? (
+                <button
+                  type="button"
+                  onClick={onRefillToggle}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition"
+                >
+                  Refill
+                </button>
+              ) : (
+                <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-wider text-emerald-700">
+                        Select Refill Brand
+                      </p>
 
-          <div className="flex gap-2">
-            <input
-              type="number"
-              min="1"
-              max={quantity}
-              placeholder="Quantity"
-              value={saleAmount}
-              onChange={(e) =>
-                onSaleChange(
-                  product.id,
-                  e.target.value
-                )
-              }
-              onClick={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+                      <p className="text-xs text-slate-500 mt-1">
+                        {product.size}
+                      </p>
+                    </div>
 
-            <button
-              type="button"
-              onClick={() => onSell(product)}
-              disabled={
-                selling === product.id ||
-                quantity === 0
-              }
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 rounded-xl font-bold disabled:opacity-40 transition"
-            >
-              {selling === product.id ? "..." : "Sell"}
-            </button>
-          </div>
+                    <button
+                      type="button"
+                      onClick={onRefillToggle}
+                      className="text-xs font-bold text-slate-500 hover:text-slate-900"
+                    >
+                      Close
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {refillBrands.map(
+                      (brand) => (
+                        <button
+                          key={brand}
+                          type="button"
+                          onClick={() =>
+                            onRefillBrandChange(
+                              brand
+                            )
+                          }
+                          className={`py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold border transition ${
+                            selectedRefillBrand ===
+                            brand
+                              ? "bg-slate-950 text-white border-slate-950"
+                              : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+                          }`}
+                        >
+                          {brand}
+                        </button>
+                      )
+                    )}
+                  </div>
+
+                  {selectedRefillBrand && (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-bold text-slate-600">
+                          Brand:{" "}
+                          <span className="text-emerald-700">
+                            {
+                              selectedRefillBrand
+                            }
+                          </span>
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="Quantity"
+                          value={saleAmount}
+                          onChange={(e) =>
+                            onSaleChange(
+                              product.id,
+                              e.target.value
+                            )
+                          }
+                          onClick={(e) =>
+                            e.stopPropagation()
+                          }
+                          onFocus={(e) =>
+                            e.stopPropagation()
+                          }
+                          className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onSell(
+                              product,
+                              selectedRefillBrand
+                            )
+                          }
+                          disabled={
+                            selling ===
+                            product.id
+                          }
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded-xl font-bold disabled:opacity-40 transition"
+                        >
+                          {selling ===
+                          product.id
+                            ? "..."
+                            : "Record"}
+                        </button>
+                      </div>
+
+                      <p className="text-xs text-slate-400 mt-2">
+                        Refill sale only. Cylinder
+                        stock will not be reduced.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                Record Sale
+              </p>
+
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  max={quantity}
+                  placeholder="Quantity"
+                  value={saleAmount}
+                  onChange={(e) =>
+                    onSaleChange(
+                      product.id,
+                      e.target.value
+                    )
+                  }
+                  onClick={(e) =>
+                    e.stopPropagation()
+                  }
+                  onFocus={(e) =>
+                    e.stopPropagation()
+                  }
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSell(product)
+                  }
+                  disabled={
+                    selling ===
+                      product.id ||
+                    quantity === 0
+                  }
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 rounded-xl font-bold disabled:opacity-40 transition"
+                >
+                  {selling === product.id
+                    ? "..."
+                    : "Sell"}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -276,12 +469,19 @@ function ProductCard({
 export default function Home() {
   const router = useRouter();
 
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] =
+    useState<Profile | null>(null);
+
   const [shops, setShops] = useState<Shop[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [stock, setStock] = useState<Stock[]>([]);
-  const [sales, setSales] = useState<Sale[]>([]);
-  const [activeShop, setActiveShop] = useState<number | null>(null);
+  const [products, setProducts] =
+    useState<Product[]>([]);
+  const [stock, setStock] =
+    useState<Stock[]>([]);
+  const [sales, setSales] =
+    useState<Sale[]>([]);
+
+  const [activeShop, setActiveShop] =
+    useState<number | null>(null);
 
   const [restockAmounts, setRestockAmounts] =
     useState<Record<number, string>>({});
@@ -292,10 +492,33 @@ export default function Home() {
   const [saleAmounts, setSaleAmounts] =
     useState<Record<number, string>>({});
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState<number | null>(null);
-  const [removing, setRemoving] = useState<number | null>(null);
-  const [selling, setSelling] = useState<number | null>(null);
+  const [openRefill, setOpenRefill] =
+    useState<number | null>(null);
+
+  const [refillBrands, setRefillBrands] =
+    useState<Record<number, string>>({});
+
+  const REFILL_BRANDS = [
+    "Progas",
+    "K Gas",
+    "Afrigas",
+    "Total Gas",
+    "Supa Jiko",
+    "Sea Gas",
+    "Others",
+  ];
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState<number | null>(null);
+
+  const [removing, setRemoving] =
+    useState<number | null>(null);
+
+  const [selling, setSelling] =
+    useState<number | null>(null);
 
   useEffect(() => {
     loadDashboard();
@@ -311,12 +534,14 @@ export default function Home() {
       return;
     }
 
-    const { data: profileData, error: profileError } =
-      await supabase
-        .from("profiles")
-        .select("full_name, role, shop_id")
-        .eq("id", user.id)
-        .single();
+    const {
+      data: profileData,
+      error: profileError,
+    } = await supabase
+      .from("profiles")
+      .select("full_name, role, shop_id")
+      .eq("id", user.id)
+      .single();
 
     if (profileError || !profileData) {
       console.error(profileError);
@@ -325,26 +550,39 @@ export default function Home() {
       return;
     }
 
-    const { data: shopsData } = await supabase
-      .from("shops")
-      .select("*")
-      .order("id");
+    const { data: shopsData } =
+      await supabase
+        .from("shops")
+        .select("*")
+        .order("id");
 
-    const { data: productsData } = await supabase
-      .from("products")
-      .select("*")
-      .order("category")
-      .order("size");
+    const { data: productsData } =
+      await supabase
+        .from("products")
+        .select("*")
+        .order("category")
+        .order("size");
 
-    const { data: stockData } = await supabase
-      .from("stock")
-      .select("*");
+    const { data: stockData } =
+      await supabase
+        .from("stock")
+        .select("*");
 
-    const { data: salesData } = await supabase
+    const {
+      data: salesData,
+      error: salesError,
+    } = await supabase
       .from("sales")
       .select(
-        "shop_id, product_id, quantity, total_price"
+        "shop_id, product_id, quantity, total_price, brand"
       );
+
+    if (salesError) {
+      console.error(
+        "Sales loading error:",
+        salesError
+      );
+    }
 
     setProfile(profileData);
     setShops(shopsData || []);
@@ -355,7 +593,9 @@ export default function Home() {
     if (profileData.role === "worker") {
       setActiveShop(profileData.shop_id);
     } else if (activeShop === null) {
-      setActiveShop(shopsData?.[0]?.id || null);
+      setActiveShop(
+        shopsData?.[0]?.id || null
+      );
     }
 
     setLoading(false);
@@ -382,13 +622,18 @@ export default function Home() {
     );
 
     if (existing) {
-      const { error } = await supabase
-        .from("stock")
-        .update({
-          quantity: existing.quantity + amount,
-        })
-        .eq("shop_id", activeShop)
-        .eq("product_id", productId);
+      const { error } =
+        await supabase
+          .from("stock")
+          .update({
+            quantity:
+              existing.quantity + amount,
+          })
+          .eq("shop_id", activeShop)
+          .eq(
+            "product_id",
+            productId
+          );
 
       if (error) {
         alert(error.message);
@@ -396,13 +641,14 @@ export default function Home() {
         return;
       }
     } else {
-      const { error } = await supabase
-        .from("stock")
-        .insert({
-          shop_id: activeShop,
-          product_id: productId,
-          quantity: amount,
-        });
+      const { error } =
+        await supabase
+          .from("stock")
+          .insert({
+            shop_id: activeShop,
+            product_id: productId,
+            quantity: amount,
+          });
 
       if (error) {
         alert(error.message);
@@ -420,11 +666,15 @@ export default function Home() {
     setSaving(null);
   }
 
-  async function removeStock(productId: number) {
+  async function removeStock(
+    productId: number
+  ) {
     if (!activeShop) return;
 
     if (profile?.role !== "admin") {
-      alert("Only administrators can remove stock.");
+      alert(
+        "Only administrators can remove stock."
+      );
       return;
     }
 
@@ -437,13 +687,16 @@ export default function Home() {
       return;
     }
 
-    const currentStock = getProductStock(
-      activeShop,
-      productId
-    );
+    const currentStock =
+      getProductStock(
+        activeShop,
+        productId
+      );
 
     if (currentStock === 0) {
-      alert("This product has no stock to remove.");
+      alert(
+        "This product has no stock to remove."
+      );
       return;
     }
 
@@ -454,17 +707,22 @@ export default function Home() {
       return;
     }
 
-    const newQuantity = currentStock - amount;
+    const newQuantity =
+      currentStock - amount;
 
     setRemoving(productId);
 
-    const { error } = await supabase
-      .from("stock")
-      .update({
-        quantity: newQuantity,
-      })
-      .eq("shop_id", activeShop)
-      .eq("product_id", productId);
+    const { error } =
+      await supabase
+        .from("stock")
+        .update({
+          quantity: newQuantity,
+        })
+        .eq("shop_id", activeShop)
+        .eq(
+          "product_id",
+          productId
+        );
 
     if (error) {
       alert(error.message);
@@ -481,22 +739,98 @@ export default function Home() {
     setRemoving(null);
   }
 
-  async function sellProduct(product: Product) {
+  async function sellProduct(
+    product: Product,
+    selectedBrand?: string
+  ) {
     if (!activeShop) return;
 
     const quantitySold = Number(
       saleAmounts[product.id]
     );
 
-    if (!quantitySold || quantitySold <= 0) {
-      alert("Enter a valid sale quantity.");
+    if (
+      !quantitySold ||
+      quantitySold <= 0
+    ) {
+      alert(
+        "Enter a valid sale quantity."
+      );
       return;
     }
 
-    const currentStock = getProductStock(
-      activeShop,
-      product.id
-    );
+    /*
+     * REFILL SALE
+     *
+     * A refill represents refilling an
+     * existing customer cylinder.
+     *
+     * Therefore we record the sale,
+     * but we DO NOT reduce cylinder stock.
+     */
+    if (product.category === "refill") {
+      if (!selectedBrand) {
+        alert(
+          "Please select the brand being refilled."
+        );
+        return;
+      }
+
+      setSelling(product.id);
+
+      const totalPrice =
+        quantitySold *
+        Number(product.price);
+
+      const {
+        error: saleError,
+      } = await supabase
+        .from("sales")
+        .insert({
+          shop_id: activeShop,
+          product_id: product.id,
+          quantity: quantitySold,
+          unit_price: product.price,
+          total_price: totalPrice,
+          brand: selectedBrand,
+        });
+
+      if (saleError) {
+        alert(saleError.message);
+        setSelling(null);
+        return;
+      }
+
+      setSaleAmounts((prev) => ({
+        ...prev,
+        [product.id]: "",
+      }));
+
+      setRefillBrands((prev) => ({
+        ...prev,
+        [product.id]: "",
+      }));
+
+      setOpenRefill(null);
+
+      await loadDashboard();
+      setSelling(null);
+
+      return;
+    }
+
+    /*
+     * NEW CYLINDER SALE
+     *
+     * New cylinders DO reduce physical
+     * stock.
+     */
+
+    const currentStock =
+      getProductStock(
+        activeShop,
+        product.id
+      );
 
     if (quantitySold > currentStock) {
       alert(
@@ -510,14 +844,18 @@ export default function Home() {
     const newQuantity =
       currentStock - quantitySold;
 
-    const { error: stockError } =
-      await supabase
-        .from("stock")
-        .update({
-          quantity: newQuantity,
-        })
-        .eq("shop_id", activeShop)
-        .eq("product_id", product.id);
+    const {
+      error: stockError,
+    } = await supabase
+      .from("stock")
+      .update({
+        quantity: newQuantity,
+      })
+      .eq("shop_id", activeShop)
+      .eq(
+        "product_id",
+        product.id
+      );
 
     if (stockError) {
       alert(stockError.message);
@@ -526,18 +864,21 @@ export default function Home() {
     }
 
     const totalPrice =
-      quantitySold * Number(product.price);
+      quantitySold *
+      Number(product.price);
 
-    const { error: saleError } =
-      await supabase
-        .from("sales")
-        .insert({
-          shop_id: activeShop,
-          product_id: product.id,
-          quantity: quantitySold,
-          unit_price: product.price,
-          total_price: totalPrice,
-        });
+    const {
+      error: saleError,
+    } = await supabase
+      .from("sales")
+      .insert({
+        shop_id: activeShop,
+        product_id: product.id,
+        quantity: quantitySold,
+        unit_price: product.price,
+        total_price: totalPrice,
+        brand: product.brand,
+      });
 
     if (saleError) {
       alert(saleError.message);
@@ -548,7 +889,10 @@ export default function Home() {
           quantity: currentStock,
         })
         .eq("shop_id", activeShop)
-        .eq("product_id", product.id);
+        .eq(
+          "product_id",
+          product.id
+        );
 
       setSelling(null);
       return;
@@ -567,16 +911,21 @@ export default function Home() {
     productId: number,
     currentPrice: number
   ) {
-    const input = document.getElementById(
-      `price-${productId}`
-    ) as HTMLInputElement | null;
+    const input =
+      document.getElementById(
+        `price-${productId}`
+      ) as HTMLInputElement | null;
 
     if (!input) {
-      alert("Price input not found.");
+      alert(
+        "Price input not found."
+      );
       return;
     }
 
-    const newPrice = Number(input.value);
+    const newPrice = Number(
+      input.value
+    );
 
     if (
       newPrice < 0 ||
@@ -588,21 +937,29 @@ export default function Home() {
     }
 
     if (newPrice === currentPrice) {
-      alert("The price has not changed.");
+      alert(
+        "The price has not changed."
+      );
       return;
     }
 
-    const { error } = await supabase
-      .from("products")
-      .update({ price: newPrice })
-      .eq("id", productId);
+    const { error } =
+      await supabase
+        .from("products")
+        .update({
+          price: newPrice,
+        })
+        .eq("id", productId);
 
     if (error) {
       alert(error.message);
       return;
     }
 
-    alert("Price updated successfully.");
+    alert(
+      "Price updated successfully."
+    );
+
     await loadDashboard();
   }
 
@@ -611,28 +968,43 @@ export default function Home() {
     router.push("/login");
   }
 
-  function getShopStock(shopId: number) {
+  function getShopStock(
+    shopId: number
+  ) {
     return stock
-      .filter((item) => item.shop_id === shopId)
+      .filter(
+        (item) =>
+          item.shop_id === shopId
+      )
       .reduce(
-        (sum, item) => sum + item.quantity,
+        (sum, item) =>
+          sum + item.quantity,
         0
       );
   }
 
   function getTotalStock() {
     return stock.reduce(
-      (sum, item) => sum + item.quantity,
+      (sum, item) =>
+        sum + item.quantity,
       0
     );
   }
 
-  function getShopSales(shopId: number) {
+  function getShopSales(
+    shopId: number
+  ) {
     return sales
-      .filter((sale) => sale.shop_id === shopId)
+      .filter(
+        (sale) =>
+          sale.shop_id === shopId
+      )
       .reduce(
         (sum, sale) =>
-          sum + Number(sale.total_price),
+          sum +
+          Number(
+            sale.total_price
+          ),
         0
       );
   }
@@ -640,7 +1012,10 @@ export default function Home() {
   function getTotalSales() {
     return sales.reduce(
       (sum, sale) =>
-        sum + Number(sale.total_price),
+        sum +
+        Number(
+          sale.total_price
+        ),
       0
     );
   }
@@ -684,49 +1059,73 @@ export default function Home() {
     profile?.role === "admin"
       ? shops
       : shops.filter(
-          (shop) => shop.id === profile?.shop_id
+          (shop) =>
+            shop.id ===
+            profile?.shop_id
         );
 
-  const activeShopData = shops.find(
-    (shop) => shop.id === activeShop
-  );
+  const activeShopData =
+    shops.find(
+      (shop) =>
+        shop.id === activeShop
+    );
 
   const refills = products
     .filter(
       (product) =>
-        product.category === "refill"
+        product.category ===
+        "refill"
     )
     .sort((a, b) => {
-      const sizeA = parseInt(a.size);
-      const sizeB = parseInt(b.size);
+      const sizeA = parseInt(
+        a.size
+      );
+
+      const sizeB = parseInt(
+        b.size
+      );
 
       return sizeA - sizeB;
     });
 
-  const newCylinders = products
-    .filter(
-      (product) => product.category === "new"
-    )
-    .sort((a, b) => {
-      const brandA = a.brand || "";
-      const brandB = b.brand || "";
+  const newCylinders =
+    products
+      .filter(
+        (product) =>
+          product.category ===
+          "new"
+      )
+      .sort((a, b) => {
+        const brandA =
+          a.brand || "";
 
-      if (brandA !== brandB) {
-        return brandA.localeCompare(brandB);
-      }
+        const brandB =
+          b.brand || "";
 
-      const sizeA = parseInt(a.size);
-      const sizeB = parseInt(b.size);
+        if (brandA !== brandB) {
+          return brandA.localeCompare(
+            brandB
+          );
+        }
 
-      return sizeA - sizeB;
-    });
+        const sizeA = parseInt(
+          a.size
+        );
+
+        const sizeB = parseInt(
+          b.size
+        );
+
+        return sizeA - sizeB;
+      });
 
   const visibleSales =
     profile?.role === "admin"
       ? sales
       : sales.filter(
           (sale) =>
-            sale.shop_id === profile?.shop_id
+            sale.shop_id ===
+            profile?.shop_id
         );
 
   return (
@@ -775,7 +1174,8 @@ export default function Home() {
 
               <h2 className="text-2xl sm:text-4xl font-black text-slate-950 mt-1">
                 Welcome,{" "}
-                {profile?.full_name || "User"}
+                {profile?.full_name ||
+                  "User"}
               </h2>
 
               <p className="text-slate-500 mt-1 capitalize">
@@ -790,7 +1190,9 @@ export default function Home() {
                 </p>
 
                 <p className="font-black text-slate-900">
-                  {activeShopData.name}
+                  {
+                    activeShopData.name
+                  }
                 </p>
               </div>
             )}
@@ -798,7 +1200,8 @@ export default function Home() {
         </section>
 
         {/* SHOP SELECTOR */}
-        {profile?.role === "admin" && (
+        {profile?.role ===
+          "admin" && (
           <section className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 p-3 sm:p-5 mb-5 sm:mb-7">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -813,22 +1216,27 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              {visibleShops.map((shop) => (
-                <button
-                  type="button"
-                  key={shop.id}
-                  onClick={() =>
-                    setActiveShop(shop.id)
-                  }
-                  className={`py-2 px-1.5 sm:py-3 sm:px-2 rounded-xl sm:rounded-2xl font-black text-xs sm:text-base transition ${
-                    activeShop === shop.id
-                      ? "bg-slate-950 text-white shadow-lg"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  }`}
-                >
-                  {shop.name}
-                </button>
-              ))}
+              {visibleShops.map(
+                (shop) => (
+                  <button
+                    type="button"
+                    key={shop.id}
+                    onClick={() =>
+                      setActiveShop(
+                        shop.id
+                      )
+                    }
+                    className={`py-2 px-1.5 sm:py-3 sm:px-2 rounded-xl sm:rounded-2xl font-black text-xs sm:text-base transition ${
+                      activeShop ===
+                      shop.id
+                        ? "bg-slate-950 text-white shadow-lg"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    {shop.name}
+                  </button>
+                )
+              )}
             </div>
           </section>
         )}
@@ -849,38 +1257,48 @@ export default function Home() {
             </p>
           </div>
 
-          {profile?.role === "admin" ? (
-            shops.map((shop) => (
-              <div
-                key={shop.id}
-                className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-3 sm:p-5 shadow-sm"
-              >
-                <div className="flex justify-between items-start">
-                  <p className="text-sm font-semibold text-slate-500">
-                    {shop.name}
+          {profile?.role ===
+          "admin" ? (
+            shops.map(
+              (shop) => (
+                <div
+                  key={shop.id}
+                  className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-3 sm:p-5 shadow-sm"
+                >
+                  <div className="flex justify-between items-start">
+                    <p className="text-sm font-semibold text-slate-500">
+                      {shop.name}
+                    </p>
+
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1" />
+                  </div>
+
+                  <p className="text-4xl font-black text-slate-950 mt-2">
+                    {getShopStock(
+                      shop.id
+                    )}
                   </p>
 
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1" />
+                  <p className="text-xs text-slate-400 mt-1">
+                    cylinders in stock
+                  </p>
                 </div>
-
-                <p className="text-4xl font-black text-slate-950 mt-2">
-                  {getShopStock(shop.id)}
-                </p>
-
-                <p className="text-xs text-slate-400 mt-1">
-                  cylinders in stock
-                </p>
-              </div>
-            ))
+              )
+            )
           ) : (
             <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
               <p className="text-sm font-semibold text-slate-500">
-                {activeShopData?.name} Stock
+                {
+                  activeShopData?.name
+                }{" "}
+                Stock
               </p>
 
               <p className="text-4xl font-black text-slate-950 mt-2">
                 {activeShop
-                  ? getShopStock(activeShop)
+                  ? getShopStock(
+                      activeShop
+                    )
                   : 0}
               </p>
 
@@ -924,34 +1342,40 @@ export default function Home() {
                             product.id
                           ) <= 5
                       )
-                      .map((product) => {
-                        const quantity =
-                          getProductStock(
-                            activeShop,
-                            product.id
+                      .map(
+                        (product) => {
+                          const quantity =
+                            getProductStock(
+                              activeShop,
+                              product.id
+                            );
+
+                          const productName =
+                            product.category ===
+                            "refill"
+                              ? product.size
+                              : `${product.brand} ${product.size}`;
+
+                          return (
+                            <span
+                              key={
+                                product.id
+                              }
+                              className={`rounded-full px-3 py-1.5 text-xs font-bold border ${
+                                quantity ===
+                                0
+                                  ? "bg-red-100 text-red-700 border-red-200"
+                                  : "bg-white text-amber-800 border-amber-200"
+                              }`}
+                            >
+                              {quantity ===
+                              0
+                                ? `🔴 ${productName} • OUT OF STOCK`
+                                : `⚠️ ${productName} • ${quantity} left`}
+                            </span>
                           );
-
-                        const productName =
-                          product.category ===
-                          "refill"
-                            ? product.size
-                            : `${product.brand} ${product.size}`;
-
-                        return (
-                          <span
-                            key={product.id}
-                            className={`rounded-full px-3 py-1.5 text-xs font-bold border ${
-                              quantity === 0
-                                ? "bg-red-100 text-red-700 border-red-200"
-                                : "bg-white text-amber-800 border-amber-200"
-                            }`}
-                          >
-                            {quantity === 0
-                              ? `🔴 ${productName} • OUT OF STOCK`
-                              : `⚠️ ${productName} • ${quantity} left`}
-                          </span>
-                        );
-                      })}
+                        }
+                      )}
                   </div>
                 </div>
               </div>
@@ -978,7 +1402,8 @@ export default function Home() {
             </div>
 
             <p className="text-4xl font-black text-emerald-600 mt-5">
-              KSh {getTotalSales().toLocaleString()}
+              KSh{" "}
+              {getTotalSales().toLocaleString()}
             </p>
           </div>
 
@@ -988,23 +1413,25 @@ export default function Home() {
             </p>
 
             <div className="mt-4 space-y-3">
-              {visibleShops.map((shop) => (
-                <div
-                  key={shop.id}
-                  className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3"
-                >
-                  <span className="font-bold text-slate-700">
-                    {shop.name}
-                  </span>
+              {visibleShops.map(
+                (shop) => (
+                  <div
+                    key={shop.id}
+                    className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3"
+                  >
+                    <span className="font-bold text-slate-700">
+                      {shop.name}
+                    </span>
 
-                  <span className="font-black text-slate-950">
-                    KSh{" "}
-                    {getShopSales(
-                      shop.id
-                    ).toLocaleString()}
-                  </span>
-                </div>
-              ))}
+                    <span className="font-black text-slate-950">
+                      KSh{" "}
+                      {getShopSales(
+                        shop.id
+                      ).toLocaleString()}
+                    </span>
+                  </div>
+                )
+              )}
             </div>
           </div>
         </section>
@@ -1024,82 +1451,134 @@ export default function Home() {
                     </h2>
 
                     <p className="text-sm text-slate-500">
-                      {activeShopData?.name} • Refill stock
+                      {
+                        activeShopData?.name
+                      }{" "}
+                      • Refill stock
                     </p>
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 md:gap-5">
-                {refills.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    quantity={getProductStock(
-                      activeShop,
-                      product.id
-                    )}
-                    profile={profile}
-                    restockAmount={
-                      restockAmounts[
+                {refills.map(
+                  (product) => (
+                    <ProductCard
+                      key={
                         product.id
-                      ] ?? ""
-                    }
-                    removeAmount={
-                      removeAmounts[
+                      }
+                      product={
+                        product
+                      }
+                      quantity={getProductStock(
+                        activeShop,
                         product.id
-                      ] ?? ""
-                    }
-                    saleAmount={
-                      saleAmounts[
+                      )}
+                      profile={
+                        profile
+                      }
+                      restockAmount={
+                        restockAmounts[
+                          product.id
+                        ] ?? ""
+                      }
+                      removeAmount={
+                        removeAmounts[
+                          product.id
+                        ] ?? ""
+                      }
+                      saleAmount={
+                        saleAmounts[
+                          product.id
+                        ] ?? ""
+                      }
+                      saving={saving}
+                      removing={
+                        removing
+                      }
+                      selling={selling}
+                      selectedRefillBrand={
+                        refillBrands[
+                          product.id
+                        ] ?? ""
+                      }
+                      refillOpen={
+                        openRefill ===
                         product.id
-                      ] ?? ""
-                    }
-                    saving={saving}
-                    removing={removing}
-                    selling={selling}
-                    onRestockChange={(
-                      productId,
-                      value
-                    ) =>
-                      setRestockAmounts(
-                        (prev) => ({
-                          ...prev,
-                          [productId]:
-                            value,
-                        })
-                      )
-                    }
-                    onRemoveChange={(
-                      productId,
-                      value
-                    ) =>
-                      setRemoveAmounts(
-                        (prev) => ({
-                          ...prev,
-                          [productId]:
-                            value,
-                        })
-                      )
-                    }
-                    onSaleChange={(
-                      productId,
-                      value
-                    ) =>
-                      setSaleAmounts(
-                        (prev) => ({
-                          ...prev,
-                          [productId]:
-                            value,
-                        })
-                      )
-                    }
-                    onRestock={restock}
-                    onRemove={removeStock}
-                    onSell={sellProduct}
-                    onUpdatePrice={updatePrice}
-                  />
-                ))}
+                      }
+                      refillBrands={
+                        REFILL_BRANDS
+                      }
+                      onRestockChange={(
+                        productId,
+                        value
+                      ) =>
+                        setRestockAmounts(
+                          (prev) => ({
+                            ...prev,
+                            [productId]:
+                              value,
+                          })
+                        )
+                      }
+                      onRemoveChange={(
+                        productId,
+                        value
+                      ) =>
+                        setRemoveAmounts(
+                          (prev) => ({
+                            ...prev,
+                            [productId]:
+                              value,
+                          })
+                        )
+                      }
+                      onSaleChange={(
+                        productId,
+                        value
+                      ) =>
+                        setSaleAmounts(
+                          (prev) => ({
+                            ...prev,
+                            [productId]:
+                              value,
+                          })
+                        )
+                      }
+                      onRestock={
+                        restock
+                      }
+                      onRemove={
+                        removeStock
+                      }
+                      onSell={
+                        sellProduct
+                      }
+                      onUpdatePrice={
+                        updatePrice
+                      }
+                      onRefillToggle={() =>
+                        setOpenRefill(
+                          openRefill ===
+                          product.id
+                            ? null
+                            : product.id
+                        )
+                      }
+                      onRefillBrandChange={(
+                        brand
+                      ) =>
+                        setRefillBrands(
+                          (prev) => ({
+                            ...prev,
+                            [product.id]:
+                              brand,
+                          })
+                        )
+                      }
+                    />
+                  )
+                )}
               </div>
             </section>
 
@@ -1122,75 +1601,100 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 md:gap-5">
-                {newCylinders.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    quantity={getProductStock(
-                      activeShop,
-                      product.id
-                    )}
-                    profile={profile}
-                    restockAmount={
-                      restockAmounts[
+                {newCylinders.map(
+                  (product) => (
+                    <ProductCard
+                      key={
                         product.id
-                      ] ?? ""
-                    }
-                    removeAmount={
-                      removeAmounts[
+                      }
+                      product={
+                        product
+                      }
+                      quantity={getProductStock(
+                        activeShop,
                         product.id
-                      ] ?? ""
-                    }
-                    saleAmount={
-                      saleAmounts[
-                        product.id
-                      ] ?? ""
-                    }
-                    saving={saving}
-                    removing={removing}
-                    selling={selling}
-                    onRestockChange={(
-                      productId,
-                      value
-                    ) =>
-                      setRestockAmounts(
-                        (prev) => ({
-                          ...prev,
-                          [productId]:
-                            value,
-                        })
-                      )
-                    }
-                    onRemoveChange={(
-                      productId,
-                      value
-                    ) =>
-                      setRemoveAmounts(
-                        (prev) => ({
-                          ...prev,
-                          [productId]:
-                            value,
-                        })
-                      )
-                    }
-                    onSaleChange={(
-                      productId,
-                      value
-                    ) =>
-                      setSaleAmounts(
-                        (prev) => ({
-                          ...prev,
-                          [productId]:
-                            value,
-                        })
-                      )
-                    }
-                    onRestock={restock}
-                    onRemove={removeStock}
-                    onSell={sellProduct}
-                    onUpdatePrice={updatePrice}
-                  />
-                ))}
+                      )}
+                      profile={
+                        profile
+                      }
+                      restockAmount={
+                        restockAmounts[
+                          product.id
+                        ] ?? ""
+                      }
+                      removeAmount={
+                        removeAmounts[
+                          product.id
+                        ] ?? ""
+                      }
+                      saleAmount={
+                        saleAmounts[
+                          product.id
+                        ] ?? ""
+                      }
+                      saving={saving}
+                      removing={
+                        removing
+                      }
+                      selling={selling}
+                      selectedRefillBrand=""
+                      refillOpen={false}
+                      refillBrands={
+                        REFILL_BRANDS
+                      }
+                      onRestockChange={(
+                        productId,
+                        value
+                      ) =>
+                        setRestockAmounts(
+                          (prev) => ({
+                            ...prev,
+                            [productId]:
+                              value,
+                          })
+                        )
+                      }
+                      onRemoveChange={(
+                        productId,
+                        value
+                      ) =>
+                        setRemoveAmounts(
+                          (prev) => ({
+                            ...prev,
+                            [productId]:
+                              value,
+                          })
+                        )
+                      }
+                      onSaleChange={(
+                        productId,
+                        value
+                      ) =>
+                        setSaleAmounts(
+                          (prev) => ({
+                            ...prev,
+                            [productId]:
+                              value,
+                          })
+                        )
+                      }
+                      onRestock={
+                        restock
+                      }
+                      onRemove={
+                        removeStock
+                      }
+                      onSell={
+                        sellProduct
+                      }
+                      onUpdatePrice={
+                        updatePrice
+                      }
+                      onRefillToggle={() => {}}
+                      onRefillBrandChange={() => {}}
+                    />
+                  )
+                )}
               </div>
             </section>
 
@@ -1209,12 +1713,16 @@ export default function Home() {
                   </div>
 
                   <div className="bg-emerald-50 text-emerald-700 px-3 py-2 rounded-xl text-xs font-bold">
-                    {visibleSales.length} sales
+                    {
+                      visibleSales.length
+                    }{" "}
+                    sales
                   </div>
                 </div>
               </div>
 
-              {visibleSales.length === 0 ? (
+              {visibleSales.length ===
+              0 ? (
                 <div className="p-10 text-center">
                   <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-100 flex items-center justify-center text-xl">
                     📊
@@ -1255,53 +1763,67 @@ export default function Home() {
                       {visibleSales
                         .slice()
                         .reverse()
-                        .map((sale, index) => {
-                          const shop =
-                            shops.find(
-                              (item) =>
-                                item.id ===
-                                sale.shop_id
+                        .map(
+                          (
+                            sale,
+                            index
+                          ) => {
+                            const shop =
+                              shops.find(
+                                (
+                                  item
+                                ) =>
+                                  item.id ===
+                                  sale.shop_id
+                              );
+
+                            const product =
+                              products.find(
+                                (
+                                  item
+                                ) =>
+                                  item.id ===
+                                  sale.product_id
+                              );
+
+                            return (
+                              <tr
+                                key={`${sale.shop_id}-${sale.product_id}-${index}`}
+                                className="border-t border-slate-100 hover:bg-slate-50 transition"
+                              >
+                                <td className="px-5 py-4 font-bold text-slate-700">
+                                  {shop?.name ||
+                                    "Unknown"}
+                                </td>
+
+                                <td className="px-5 py-4 text-slate-600">
+                                  {product
+                                    ? product.category ===
+                                      "refill"
+                                      ? `${product.size} Refill${
+                                          sale.brand
+                                            ? ` • ${sale.brand}`
+                                            : ""
+                                        }`
+                                      : `${product.brand} ${product.size}`
+                                    : "Unknown"}
+                                </td>
+
+                                <td className="px-5 py-4 font-bold">
+                                  {sale.quantity ||
+                                    0}
+                                </td>
+
+                                <td className="px-5 py-4 font-black text-emerald-600">
+                                  KSh{" "}
+                                  {Number(
+                                    sale.total_price
+                                  ).toLocaleString()}
+                                </td>
+                              </tr>
                             );
-
-                          const product =
-                            products.find(
-                              (item) =>
-                                item.id ===
-                                sale.product_id
-                            );
-
-                          return (
-                            <tr
-                              key={`${sale.shop_id}-${sale.product_id}-${index}`}
-                              className="border-t border-slate-100 hover:bg-slate-50 transition"
-                            >
-                              <td className="px-5 py-4 font-bold text-slate-700">
-                                {shop?.name ||
-                                  "Unknown"}
-                              </td>
-
-                              <td className="px-5 py-4 text-slate-600">
-                                {product
-                                  ? product.category ===
-                                    "refill"
-                                    ? `${product.size} Refill`
-                                    : `${product.brand} ${product.size}`
-                                  : "Unknown"}
-                              </td>
-
-                              <td className="px-5 py-4 font-bold">
-                                {sale.quantity || 0}
-                              </td>
-
-                              <td className="px-5 py-4 font-black text-emerald-600">
-                                KSh{" "}
-                                {Number(
-                                  sale.total_price
-                                ).toLocaleString()}
-                              </td>
-                            </tr>
-                          );
-                        })}
+                          }
+                        )}
                     </tbody>
                   </table>
                 </div>
@@ -1309,7 +1831,8 @@ export default function Home() {
             </section>
 
             {/* ADMIN PANEL */}
-            {profile?.role === "admin" && (
+            {profile?.role ===
+              "admin" && (
               <section className="bg-slate-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
                   <div>
