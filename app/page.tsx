@@ -129,9 +129,7 @@ function ProductCard({
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="w-11 h-11 rounded-xl bg-slate-950 text-white flex items-center justify-center font-black mb-4">
-              {product.category === "refill"
-                ? "G"
-                : "C"}
+              {product.category === "refill" ? "G" : "C"}
             </div>
 
             <h3 className="font-bold text-lg text-slate-900">
@@ -147,11 +145,13 @@ function ProductCard({
             </p>
           </div>
 
-          <span
-            className={`text-xs font-bold px-3 py-2 rounded-full border whitespace-nowrap ${stockStatus}`}
-          >
-            {quantity} in stock
-          </span>
+          {product.category === "new" && (
+            <span
+              className={`text-xs font-bold px-3 py-2 rounded-full border whitespace-nowrap ${stockStatus}`}
+            >
+              {quantity} in stock
+            </span>
+          )}
         </div>
 
         <div className="mt-5 pt-4 border-t border-slate-100">
@@ -160,11 +160,11 @@ function ProductCard({
           </p>
 
           <p className="text-3xl font-black text-slate-950 mt-1">
-            KSh{" "}
-            {Number(product.price).toLocaleString()}
+            KSh {Number(product.price).toLocaleString()}
           </p>
         </div>
 
+        {/* ADMIN PRICE CONTROL */}
         {profile?.role === "admin" && (
           <div className="mt-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
@@ -194,240 +194,23 @@ function ProductCard({
           </div>
         )}
 
-        {/* RESTOCK */}
-        <div className="mt-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-            Restock
-          </p>
-
-          <div className="flex gap-2">
-            <input
-              type="number"
-              min="1"
-              placeholder="Quantity"
-              value={restockAmount}
-              onChange={(e) =>
-                onRestockChange(
-                  product.id,
-                  e.target.value
-                )
-              }
-              onClick={(e) =>
-                e.stopPropagation()
-              }
-              onFocus={(e) =>
-                e.stopPropagation()
-              }
-              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-slate-900"
-            />
-
-            <button
-              type="button"
-              onClick={() =>
-                onRestock(product.id)
-              }
-              disabled={
-                saving === product.id
-              }
-              className="bg-slate-950 text-white px-4 rounded-xl font-bold disabled:opacity-50 hover:bg-slate-800 transition"
-            >
-              {saving === product.id
-                ? "..."
-                : "Add"}
-            </button>
-          </div>
-        </div>
-
-        {/* REMOVE STOCK - ADMIN ONLY */}
-        {profile?.role === "admin" && (
-          <div className="mt-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-2">
-              Remove Stock
-            </p>
-
-            <div className="flex gap-2">
-              <input
-                type="number"
-                min="1"
-                max={quantity}
-                placeholder="Quantity"
-                value={removeAmount}
-                onChange={(e) =>
-                  onRemoveChange(
-                    product.id,
-                    e.target.value
-                  )
-                }
-                onClick={(e) =>
-                  e.stopPropagation()
-                }
-                onFocus={(e) =>
-                  e.stopPropagation()
-                }
-                className="w-full rounded-xl border border-red-200 px-3 py-2.5 outline-none focus:ring-2 focus:ring-red-500"
-              />
-
-              <button
-                type="button"
-                onClick={() =>
-                  onRemove(product.id)
-                }
-                disabled={
-                  removing === product.id ||
-                  quantity === 0
-                }
-                className="bg-red-600 text-white px-4 rounded-xl font-bold disabled:opacity-40 hover:bg-red-700 transition"
-              >
-                {removing === product.id
-                  ? "..."
-                  : "Remove"}
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-400 mt-2">
-              Use this to correct accidentally
-              added stock.
-            </p>
-          </div>
-        )}
-
-        {/* RECORD SALE / REFILL */}
-        <div className="mt-4">
-          {product.category === "refill" ? (
-            <>
-              {!refillOpen ? (
-                <button
-                  type="button"
-                  onClick={onRefillToggle}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition"
-                >
-                  Refill
-                </button>
-              ) : (
-                <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-wider text-emerald-700">
-                        Select Refill Brand
-                      </p>
-
-                      <p className="text-xs text-slate-500 mt-1">
-                        {product.size}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={onRefillToggle}
-                      className="text-xs font-bold text-slate-500 hover:text-slate-900"
-                    >
-                      Close
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    {refillBrands.map(
-                      (brand) => (
-                        <button
-                          key={brand}
-                          type="button"
-                          onClick={() =>
-                            onRefillBrandChange(
-                              brand
-                            )
-                          }
-                          className={`py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold border transition ${
-                            selectedRefillBrand ===
-                            brand
-                              ? "bg-slate-950 text-white border-slate-950"
-                              : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
-                          }`}
-                        >
-                          {brand}
-                        </button>
-                      )
-                    )}
-                  </div>
-
-                  {selectedRefillBrand && (
-                    <div className="mt-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-bold text-slate-600">
-                          Brand:{" "}
-                          <span className="text-emerald-700">
-                            {
-                              selectedRefillBrand
-                            }
-                          </span>
-                        </p>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          min="1"
-                          placeholder="Quantity"
-                          value={saleAmount}
-                          onChange={(e) =>
-                            onSaleChange(
-                              product.id,
-                              e.target.value
-                            )
-                          }
-                          onClick={(e) =>
-                            e.stopPropagation()
-                          }
-                          onFocus={(e) =>
-                            e.stopPropagation()
-                          }
-                          className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500"
-                        />
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onSell(
-                              product,
-                              selectedRefillBrand
-                            )
-                          }
-                          disabled={
-                            selling ===
-                            product.id
-                          }
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded-xl font-bold disabled:opacity-40 transition"
-                        >
-                          {selling ===
-                          product.id
-                            ? "..."
-                            : "Record"}
-                        </button>
-                      </div>
-
-                      <p className="text-xs text-slate-400 mt-2">
-                        Refill sale only. Cylinder
-                        stock will not be reduced.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          ) : (
-            <>
+        {/* STOCK CONTROLS - NEW CYLINDERS ONLY */}
+        {product.category === "new" && (
+          <>
+            {/* RESTOCK */}
+            <div className="mt-5">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                Record Sale
+                Restock
               </p>
 
               <div className="flex gap-2">
                 <input
                   type="number"
                   min="1"
-                  max={quantity}
                   placeholder="Quantity"
-                  value={saleAmount}
+                  value={restockAmount}
                   onChange={(e) =>
-                    onSaleChange(
+                    onRestockChange(
                       product.id,
                       e.target.value
                     )
@@ -438,29 +221,250 @@ function ProductCard({
                   onFocus={(e) =>
                     e.stopPropagation()
                   }
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-slate-900"
                 />
 
                 <button
                   type="button"
                   onClick={() =>
-                    onSell(product)
+                    onRestock(product.id)
                   }
                   disabled={
-                    selling ===
-                      product.id ||
-                    quantity === 0
+                    saving === product.id
                   }
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 rounded-xl font-bold disabled:opacity-40 transition"
+                  className="bg-slate-950 text-white px-4 rounded-xl font-bold disabled:opacity-50 hover:bg-slate-800 transition"
                 >
-                  {selling === product.id
+                  {saving === product.id
                     ? "..."
-                    : "Sell"}
+                    : "Add"}
                 </button>
               </div>
-            </>
-          )}
-        </div>
+            </div>
+
+            {/* REMOVE STOCK - ADMIN ONLY */}
+            {profile?.role === "admin" && (
+              <div className="mt-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-red-500 mb-2">
+                  Remove Stock
+                </p>
+
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max={quantity}
+                    placeholder="Quantity"
+                    value={removeAmount}
+                    onChange={(e) =>
+                      onRemoveChange(
+                        product.id,
+                        e.target.value
+                      )
+                    }
+                    onClick={(e) =>
+                      e.stopPropagation()
+                    }
+                    onFocus={(e) =>
+                      e.stopPropagation()
+                    }
+                    className="w-full rounded-xl border border-red-200 px-3 py-2.5 outline-none focus:ring-2 focus:ring-red-500"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onRemove(product.id)
+                    }
+                    disabled={
+                      removing === product.id ||
+                      quantity === 0
+                    }
+                    className="bg-red-600 text-white px-4 rounded-xl font-bold disabled:opacity-40 hover:bg-red-700 transition"
+                  >
+                    {removing === product.id
+                      ? "..."
+                      : "Remove"}
+                  </button>
+                </div>
+
+                <p className="text-xs text-slate-400 mt-2">
+                  Use this to correct accidentally
+                  added stock.
+                </p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* SALES CONTROLS - WORKERS ONLY */}
+        {profile?.role !== "admin" && (
+          <div className="mt-4">
+            {product.category === "refill" ? (
+              <>
+                {!refillOpen ? (
+                  <button
+                    type="button"
+                    onClick={onRefillToggle}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition"
+                  >
+                    Refill
+                  </button>
+                ) : (
+                  <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-wider text-emerald-700">
+                          Select Refill Brand
+                        </p>
+
+                        <p className="text-xs text-slate-500 mt-1">
+                          {product.size}
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={onRefillToggle}
+                        className="text-xs font-bold text-slate-500 hover:text-slate-900"
+                      >
+                        Close
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {refillBrands.map(
+                        (brand) => (
+                          <button
+                            key={brand}
+                            type="button"
+                            onClick={() =>
+                              onRefillBrandChange(
+                                brand
+                              )
+                            }
+                            className={`py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold border transition ${
+                              selectedRefillBrand ===
+                              brand
+                                ? "bg-slate-950 text-white border-slate-950"
+                                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+                            }`}
+                          >
+                            {brand}
+                          </button>
+                        )
+                      )}
+                    </div>
+
+                    {selectedRefillBrand && (
+                      <div className="mt-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-bold text-slate-600">
+                            Brand:{" "}
+                            <span className="text-emerald-700">
+                              {selectedRefillBrand}
+                            </span>
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <input
+                            type="number"
+                            min="1"
+                            placeholder="Quantity"
+                            value={saleAmount}
+                            onChange={(e) =>
+                              onSaleChange(
+                                product.id,
+                                e.target.value
+                              )
+                            }
+                            onClick={(e) =>
+                              e.stopPropagation()
+                            }
+                            onFocus={(e) =>
+                              e.stopPropagation()
+                            }
+                            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500"
+                          />
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onSell(
+                                product,
+                                selectedRefillBrand
+                              )
+                            }
+                            disabled={
+                              selling ===
+                              product.id
+                            }
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 rounded-xl font-bold disabled:opacity-40 transition"
+                          >
+                            {selling ===
+                            product.id
+                              ? "..."
+                              : "Record"}
+                          </button>
+                        </div>
+
+                        <p className="text-xs text-slate-400 mt-2">
+                          Refill sale only. Cylinder
+                          stock will not be reduced.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  Record Sale
+                </p>
+
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max={quantity}
+                    placeholder="Quantity"
+                    value={saleAmount}
+                    onChange={(e) =>
+                      onSaleChange(
+                        product.id,
+                        e.target.value
+                      )
+                    }
+                    onClick={(e) =>
+                      e.stopPropagation()
+                    }
+                    onFocus={(e) =>
+                      e.stopPropagation()
+                    }
+                    className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSell(product)
+                    }
+                    disabled={
+                      selling === product.id ||
+                      quantity === 0
+                    }
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 rounded-xl font-bold disabled:opacity-40 transition"
+                  >
+                    {selling === product.id
+                      ? "..."
+                      : "Sell"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -472,11 +476,15 @@ export default function Home() {
   const [profile, setProfile] =
     useState<Profile | null>(null);
 
-  const [shops, setShops] = useState<Shop[]>([]);
+  const [shops, setShops] =
+    useState<Shop[]>([]);
+
   const [products, setProducts] =
     useState<Product[]>([]);
+
   const [stock, setStock] =
     useState<Stock[]>([]);
+
   const [sales, setSales] =
     useState<Sale[]>([]);
 
@@ -1033,7 +1041,7 @@ export default function Home() {
     );
   }
 
-  if (loading) {
+    if (loading) {
     return (
       <main className="min-h-screen bg-slate-950 flex items-center justify-center px-4">
         <div className="text-center">
@@ -1059,73 +1067,47 @@ export default function Home() {
     profile?.role === "admin"
       ? shops
       : shops.filter(
-          (shop) =>
-            shop.id ===
-            profile?.shop_id
+          (shop) => shop.id === profile?.shop_id
         );
 
-  const activeShopData =
-    shops.find(
-      (shop) =>
-        shop.id === activeShop
-    );
+  const activeShopData = shops.find(
+    (shop) => shop.id === activeShop
+  );
 
   const refills = products
     .filter(
-      (product) =>
-        product.category ===
-        "refill"
+      (product) => product.category === "refill"
     )
     .sort((a, b) => {
-      const sizeA = parseInt(
-        a.size
-      );
-
-      const sizeB = parseInt(
-        b.size
-      );
+      const sizeA = parseInt(a.size);
+      const sizeB = parseInt(b.size);
 
       return sizeA - sizeB;
     });
 
-  const newCylinders =
-    products
-      .filter(
-        (product) =>
-          product.category ===
-          "new"
-      )
-      .sort((a, b) => {
-        const brandA =
-          a.brand || "";
+  const newCylinders = products
+    .filter(
+      (product) => product.category === "new"
+    )
+    .sort((a, b) => {
+      const brandA = a.brand || "";
+const brandB = b.brand || "";
 
-        const brandB =
-          b.brand || "";
+      if (brandA !== brandB) {
+        return brandA.localeCompare(brandB);
+      }
 
-        if (brandA !== brandB) {
-          return brandA.localeCompare(
-            brandB
-          );
-        }
+      const sizeA = parseInt(a.size);
+      const sizeB = parseInt(b.size);
 
-        const sizeA = parseInt(
-          a.size
-        );
-
-        const sizeB = parseInt(
-          b.size
-        );
-
-        return sizeA - sizeB;
-      });
+      return sizeA - sizeB;
+    });
 
   const visibleSales =
     profile?.role === "admin"
       ? sales
       : sales.filter(
-          (sale) =>
-            sale.shop_id ===
-            profile?.shop_id
+          (sale) => sale.shop_id === profile?.shop_id
         );
 
   return (
@@ -1173,9 +1155,7 @@ export default function Home() {
               </p>
 
               <h2 className="text-2xl sm:text-4xl font-black text-slate-950 mt-1">
-                Welcome,{" "}
-                {profile?.full_name ||
-                  "User"}
+                Welcome, {profile?.full_name || "User"}
               </h2>
 
               <p className="text-slate-500 mt-1 capitalize">
@@ -1190,9 +1170,7 @@ export default function Home() {
                 </p>
 
                 <p className="font-black text-slate-900">
-                  {
-                    activeShopData.name
-                  }
+                  {activeShopData.name}
                 </p>
               </div>
             )}
@@ -1200,8 +1178,7 @@ export default function Home() {
         </section>
 
         {/* SHOP SELECTOR */}
-        {profile?.role ===
-          "admin" && (
+        {profile?.role === "admin" && (
           <section className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 p-3 sm:p-5 mb-5 sm:mb-7">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -1216,27 +1193,20 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              {visibleShops.map(
-                (shop) => (
-                  <button
-                    type="button"
-                    key={shop.id}
-                    onClick={() =>
-                      setActiveShop(
-                        shop.id
-                      )
-                    }
-                    className={`py-2 px-1.5 sm:py-3 sm:px-2 rounded-xl sm:rounded-2xl font-black text-xs sm:text-base transition ${
-                      activeShop ===
-                      shop.id
-                        ? "bg-slate-950 text-white shadow-lg"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    {shop.name}
-                  </button>
-                )
-              )}
+              {visibleShops.map((shop) => (
+                <button
+                  type="button"
+                  key={shop.id}
+                  onClick={() => setActiveShop(shop.id)}
+                  className={`py-2 px-1.5 sm:py-3 sm:px-2 rounded-xl sm:rounded-2xl font-black text-xs sm:text-base transition ${
+                    activeShop === shop.id
+                      ? "bg-slate-950 text-white shadow-lg"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {shop.name}
+                </button>
+              ))}
             </div>
           </section>
         )}
@@ -1257,48 +1227,38 @@ export default function Home() {
             </p>
           </div>
 
-          {profile?.role ===
-          "admin" ? (
-            shops.map(
-              (shop) => (
-                <div
-                  key={shop.id}
-                  className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-3 sm:p-5 shadow-sm"
-                >
-                  <div className="flex justify-between items-start">
-                    <p className="text-sm font-semibold text-slate-500">
-                      {shop.name}
-                    </p>
-
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1" />
-                  </div>
-
-                  <p className="text-4xl font-black text-slate-950 mt-2">
-                    {getShopStock(
-                      shop.id
-                    )}
+          {profile?.role === "admin" ? (
+            shops.map((shop) => (
+              <div
+                key={shop.id}
+                className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-3 sm:p-5 shadow-sm"
+              >
+                <div className="flex justify-between items-start">
+                  <p className="text-sm font-semibold text-slate-500">
+                    {shop.name}
                   </p>
 
-                  <p className="text-xs text-slate-400 mt-1">
-                    cylinders in stock
-                  </p>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1" />
                 </div>
-              )
-            )
+
+                <p className="text-4xl font-black text-slate-950 mt-2">
+                  {getShopStock(shop.id)}
+                </p>
+
+                <p className="text-xs text-slate-400 mt-1">
+                  cylinders in stock
+                </p>
+              </div>
+            ))
           ) : (
             <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
               <p className="text-sm font-semibold text-slate-500">
-                {
-                  activeShopData?.name
-                }{" "}
-                Stock
+                {activeShopData?.name} Stock
               </p>
 
               <p className="text-4xl font-black text-slate-950 mt-2">
                 {activeShop
-                  ? getShopStock(
-                      activeShop
-                    )
+                  ? getShopStock(activeShop)
                   : 0}
               </p>
 
@@ -1313,10 +1273,7 @@ export default function Home() {
         {activeShop &&
           products.some(
             (product) =>
-              getProductStock(
-                activeShop,
-                product.id
-              ) <= 5
+              getProductStock(activeShop, product.id) <= 5
           ) && (
             <section className="mb-8 rounded-3xl border border-amber-200 bg-amber-50 p-5">
               <div className="flex items-start gap-4">
@@ -1342,40 +1299,33 @@ export default function Home() {
                             product.id
                           ) <= 5
                       )
-                      .map(
-                        (product) => {
-                          const quantity =
-                            getProductStock(
-                              activeShop,
-                              product.id
-                            );
-
-                          const productName =
-                            product.category ===
-                            "refill"
-                              ? product.size
-                              : `${product.brand} ${product.size}`;
-
-                          return (
-                            <span
-                              key={
-                                product.id
-                              }
-                              className={`rounded-full px-3 py-1.5 text-xs font-bold border ${
-                                quantity ===
-                                0
-                                  ? "bg-red-100 text-red-700 border-red-200"
-                                  : "bg-white text-amber-800 border-amber-200"
-                              }`}
-                            >
-                              {quantity ===
-                              0
-                                ? `🔴 ${productName} • OUT OF STOCK`
-                                : `⚠️ ${productName} • ${quantity} left`}
-                            </span>
+                      .map((product) => {
+                        const quantity =
+                          getProductStock(
+                            activeShop,
+                            product.id
                           );
-                        }
-                      )}
+
+                        const productName =
+                          product.category === "refill"
+                            ? product.size
+                            : `${product.brand} ${product.size}`;
+
+                        return (
+                          <span
+                            key={product.id}
+                            className={`rounded-full px-3 py-1.5 text-xs font-bold border ${
+                              quantity === 0
+                                ? "bg-red-100 text-red-700 border-red-200"
+                                : "bg-white text-amber-800 border-amber-200"
+                            }`}
+                          >
+                            {quantity === 0
+                              ? `🔴 ${productName} • OUT OF STOCK`
+                              : `⚠️ ${productName} • ${quantity} left`}
+                          </span>
+                        );
+                      })}
                   </div>
                 </div>
               </div>
@@ -1402,8 +1352,7 @@ export default function Home() {
             </div>
 
             <p className="text-4xl font-black text-emerald-600 mt-5">
-              KSh{" "}
-              {getTotalSales().toLocaleString()}
+              KSh {getTotalSales().toLocaleString()}
             </p>
           </div>
 
@@ -1413,25 +1362,23 @@ export default function Home() {
             </p>
 
             <div className="mt-4 space-y-3">
-              {visibleShops.map(
-                (shop) => (
-                  <div
-                    key={shop.id}
-                    className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3"
-                  >
-                    <span className="font-bold text-slate-700">
-                      {shop.name}
-                    </span>
+              {visibleShops.map((shop) => (
+                <div
+                  key={shop.id}
+                  className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3"
+                >
+                  <span className="font-bold text-slate-700">
+                    {shop.name}
+                  </span>
 
-                    <span className="font-black text-slate-950">
-                      KSh{" "}
-                      {getShopSales(
-                        shop.id
-                      ).toLocaleString()}
-                    </span>
-                  </div>
-                )
-              )}
+                  <span className="font-black text-slate-950">
+                    KSh{" "}
+                    {getShopSales(
+                      shop.id
+                    ).toLocaleString()}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -1451,134 +1398,78 @@ export default function Home() {
                     </h2>
 
                     <p className="text-sm text-slate-500">
-                      {
-                        activeShopData?.name
-                      }{" "}
-                      • Refill stock
+                      {activeShopData?.name} • Refill stock
                     </p>
                   </div>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 md:gap-5">
-                {refills.map(
-                  (product) => (
-                    <ProductCard
-                      key={
-                        product.id
-                      }
-                      product={
-                        product
-                      }
-                      quantity={getProductStock(
-                        activeShop,
-                        product.id
-                      )}
-                      profile={
-                        profile
-                      }
-                      restockAmount={
-                        restockAmounts[
-                          product.id
-                        ] ?? ""
-                      }
-                      removeAmount={
-                        removeAmounts[
-                          product.id
-                        ] ?? ""
-                      }
-                      saleAmount={
-                        saleAmounts[
-                          product.id
-                        ] ?? ""
-                      }
-                      saving={saving}
-                      removing={
-                        removing
-                      }
-                      selling={selling}
-                      selectedRefillBrand={
-                        refillBrands[
-                          product.id
-                        ] ?? ""
-                      }
-                      refillOpen={
-                        openRefill ===
-                        product.id
-                      }
-                      refillBrands={
-                        REFILL_BRANDS
-                      }
-                      onRestockChange={(
-                        productId,
-                        value
-                      ) =>
-                        setRestockAmounts(
-                          (prev) => ({
-                            ...prev,
-                            [productId]:
-                              value,
-                          })
-                        )
-                      }
-                      onRemoveChange={(
-                        productId,
-                        value
-                      ) =>
-                        setRemoveAmounts(
-                          (prev) => ({
-                            ...prev,
-                            [productId]:
-                              value,
-                          })
-                        )
-                      }
-                      onSaleChange={(
-                        productId,
-                        value
-                      ) =>
-                        setSaleAmounts(
-                          (prev) => ({
-                            ...prev,
-                            [productId]:
-                              value,
-                          })
-                        )
-                      }
-                      onRestock={
-                        restock
-                      }
-                      onRemove={
-                        removeStock
-                      }
-                      onSell={
-                        sellProduct
-                      }
-                      onUpdatePrice={
-                        updatePrice
-                      }
-                      onRefillToggle={() =>
-                        setOpenRefill(
-                          openRefill ===
-                          product.id
-                            ? null
-                            : product.id
-                        )
-                      }
-                      onRefillBrandChange={(
-                        brand
-                      ) =>
-                        setRefillBrands(
-                          (prev) => ({
-                            ...prev,
-                            [product.id]:
-                              brand,
-                          })
-                        )
-                      }
-                    />
-                  )
-                )}
+                {refills.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    quantity={getProductStock(
+                      activeShop,
+                      product.id
+                    )}
+                    profile={profile}
+                    restockAmount={
+                      restockAmounts[product.id] ?? ""
+                    }
+                    removeAmount={
+                      removeAmounts[product.id] ?? ""
+                    }
+                    saleAmount={
+                      saleAmounts[product.id] ?? ""
+                    }
+                    saving={saving}
+                    removing={removing}
+                    selling={selling}
+                    selectedRefillBrand={
+                      refillBrands[product.id] ?? ""
+                    }
+                    refillOpen={
+                      openRefill === product.id
+                    }
+                    refillBrands={REFILL_BRANDS}
+                    onRestockChange={(productId, value) =>
+                      setRestockAmounts((prev) => ({
+                        ...prev,
+                        [productId]: value,
+                      }))
+                    }
+                    onRemoveChange={(productId, value) =>
+                      setRemoveAmounts((prev) => ({
+                        ...prev,
+                        [productId]: value,
+                      }))
+                    }
+                    onSaleChange={(productId, value) =>
+                      setSaleAmounts((prev) => ({
+                        ...prev,
+                        [productId]: value,
+                      }))
+                    }
+                    onRestock={restock}
+                    onRemove={removeStock}
+                    onSell={sellProduct}
+                    onUpdatePrice={updatePrice}
+                    onRefillToggle={() =>
+                      setOpenRefill(
+                        openRefill === product.id
+                          ? null
+                          : product.id
+                      )
+                    }
+                    onRefillBrandChange={(brand) =>
+                      setRefillBrands((prev) => ({
+                        ...prev,
+                        [product.id]: brand,
+                      }))
+                    }
+                  />
+                ))}
               </div>
             </section>
 
@@ -1601,100 +1492,56 @@ export default function Home() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 md:gap-5">
-                {newCylinders.map(
-                  (product) => (
-                    <ProductCard
-                      key={
-                        product.id
-                      }
-                      product={
-                        product
-                      }
-                      quantity={getProductStock(
-                        activeShop,
-                        product.id
-                      )}
-                      profile={
-                        profile
-                      }
-                      restockAmount={
-                        restockAmounts[
-                          product.id
-                        ] ?? ""
-                      }
-                      removeAmount={
-                        removeAmounts[
-                          product.id
-                        ] ?? ""
-                      }
-                      saleAmount={
-                        saleAmounts[
-                          product.id
-                        ] ?? ""
-                      }
-                      saving={saving}
-                      removing={
-                        removing
-                      }
-                      selling={selling}
-                      selectedRefillBrand=""
-                      refillOpen={false}
-                      refillBrands={
-                        REFILL_BRANDS
-                      }
-                      onRestockChange={(
-                        productId,
-                        value
-                      ) =>
-                        setRestockAmounts(
-                          (prev) => ({
-                            ...prev,
-                            [productId]:
-                              value,
-                          })
-                        )
-                      }
-                      onRemoveChange={(
-                        productId,
-                        value
-                      ) =>
-                        setRemoveAmounts(
-                          (prev) => ({
-                            ...prev,
-                            [productId]:
-                              value,
-                          })
-                        )
-                      }
-                      onSaleChange={(
-                        productId,
-                        value
-                      ) =>
-                        setSaleAmounts(
-                          (prev) => ({
-                            ...prev,
-                            [productId]:
-                              value,
-                          })
-                        )
-                      }
-                      onRestock={
-                        restock
-                      }
-                      onRemove={
-                        removeStock
-                      }
-                      onSell={
-                        sellProduct
-                      }
-                      onUpdatePrice={
-                        updatePrice
-                      }
-                      onRefillToggle={() => {}}
-                      onRefillBrandChange={() => {}}
-                    />
-                  )
-                )}
+                {newCylinders.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    quantity={getProductStock(
+                      activeShop,
+                      product.id
+                    )}
+                    profile={profile}
+                    restockAmount={
+                      restockAmounts[product.id] ?? ""
+                    }
+                    removeAmount={
+                      removeAmounts[product.id] ?? ""
+                    }
+                    saleAmount={
+                      saleAmounts[product.id] ?? ""
+                    }
+                    saving={saving}
+                    removing={removing}
+                    selling={selling}
+                    selectedRefillBrand=""
+                    refillOpen={false}
+                    refillBrands={REFILL_BRANDS}
+                    onRestockChange={(productId, value) =>
+                      setRestockAmounts((prev) => ({
+                        ...prev,
+                        [productId]: value,
+                      }))
+                    }
+                    onRemoveChange={(productId, value) =>
+                      setRemoveAmounts((prev) => ({
+                        ...prev,
+                        [productId]: value,
+                      }))
+                    }
+                    onSaleChange={(productId, value) =>
+                      setSaleAmounts((prev) => ({
+                        ...prev,
+                        [productId]: value,
+                      }))
+                    }
+                    onRestock={restock}
+                    onRemove={removeStock}
+                    onSell={sellProduct}
+                    onUpdatePrice={updatePrice}
+                    onRefillToggle={() => {}}
+                    onRefillBrandChange={() => {}}
+                  />
+                ))}
               </div>
             </section>
 
@@ -1713,16 +1560,12 @@ export default function Home() {
                   </div>
 
                   <div className="bg-emerald-50 text-emerald-700 px-3 py-2 rounded-xl text-xs font-bold">
-                    {
-                      visibleSales.length
-                    }{" "}
-                    sales
+                    {visibleSales.length} sales
                   </div>
                 </div>
               </div>
 
-              {visibleSales.length ===
-              0 ? (
+              {visibleSales.length === 0 ? (
                 <div className="p-10 text-center">
                   <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-100 flex items-center justify-center text-xl">
                     📊
@@ -1763,67 +1606,51 @@ export default function Home() {
                       {visibleSales
                         .slice()
                         .reverse()
-                        .map(
-                          (
-                            sale,
-                            index
-                          ) => {
-                            const shop =
-                              shops.find(
-                                (
-                                  item
-                                ) =>
-                                  item.id ===
-                                  sale.shop_id
-                              );
+                        .map((sale, index) => {
+                          const shop = shops.find(
+                            (item) =>
+                              item.id === sale.shop_id
+                          );
 
-                            const product =
-                              products.find(
-                                (
-                                  item
-                                ) =>
-                                  item.id ===
-                                  sale.product_id
-                              );
+                          const product = products.find(
+                            (item) =>
+                              item.id === sale.product_id
+                          );
 
-                            return (
-                              <tr
-                                key={`${sale.shop_id}-${sale.product_id}-${index}`}
-                                className="border-t border-slate-100 hover:bg-slate-50 transition"
-                              >
-                                <td className="px-5 py-4 font-bold text-slate-700">
-                                  {shop?.name ||
-                                    "Unknown"}
-                                </td>
+                          return (
+                            <tr
+                              key={`${sale.shop_id}-${sale.product_id}-${index}`}
+                              className="border-t border-slate-100 hover:bg-slate-50 transition"
+                            >
+                              <td className="px-5 py-4 font-bold text-slate-700">
+                                {shop?.name || "Unknown"}
+                              </td>
 
-                                <td className="px-5 py-4 text-slate-600">
-                                  {product
-                                    ? product.category ===
-                                      "refill"
-                                      ? `${product.size} Refill${
-                                          sale.brand
-                                            ? ` • ${sale.brand}`
-                                            : ""
-                                        }`
-                                      : `${product.brand} ${product.size}`
-                                    : "Unknown"}
-                                </td>
+                              <td className="px-5 py-4 text-slate-600">
+                                {product
+                                  ? product.category === "refill"
+                                    ? `${product.size} Refill${
+                                        sale.brand
+                                          ? ` • ${sale.brand}`
+                                          : ""
+                                      }`
+                                    : `${product.brand} ${product.size}`
+                                  : "Unknown"}
+                              </td>
 
-                                <td className="px-5 py-4 font-bold">
-                                  {sale.quantity ||
-                                    0}
-                                </td>
+                              <td className="px-5 py-4 font-bold">
+                                {sale.quantity || 0}
+                              </td>
 
-                                <td className="px-5 py-4 font-black text-emerald-600">
-                                  KSh{" "}
-                                  {Number(
-                                    sale.total_price
-                                  ).toLocaleString()}
-                                </td>
-                              </tr>
-                            );
-                          }
-                        )}
+                              <td className="px-5 py-4 font-black text-emerald-600">
+                                KSh{" "}
+                                {Number(
+                                  sale.total_price
+                                ).toLocaleString()}
+                              </td>
+                            </tr>
+                          );
+                        })}
                     </tbody>
                   </table>
                 </div>
@@ -1831,8 +1658,7 @@ export default function Home() {
             </section>
 
             {/* ADMIN PANEL */}
-            {profile?.role ===
-              "admin" && (
+            {profile?.role === "admin" && (
               <section className="bg-slate-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
                   <div>
