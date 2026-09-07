@@ -36,6 +36,7 @@ type Sale = {
   quantity?: number;
   total_price: number;
   brand?: string | null;
+  created_at?: string;
 };
 
 type ProductCardProps = {
@@ -248,7 +249,7 @@ function ProductCard({
                   Remove Stock
                 </p>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2">
                   <input
                     type="number"
                     min="1"
@@ -267,7 +268,7 @@ function ProductCard({
                     onFocus={(e) =>
                       e.stopPropagation()
                     }
-                    className="w-full rounded-xl border border-red-200 px-3 py-2.5 outline-none focus:ring-2 focus:ring-red-500"
+                  className="min-w-0 flex-1 rounded-xl border border-red-200 bg-white text-slate-950 font-bold px-3 py-2.5 outline-none focus:ring-2 focus:ring-red-500"
                   />
 
                   <button
@@ -366,7 +367,7 @@ function ProductCard({
                           </p>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex flex-col gap-2">
                           <input
                             type="number"
                             min="1"
@@ -384,7 +385,7 @@ function ProductCard({
                             onFocus={(e) =>
                               e.stopPropagation()
                             }
-                            className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500"
+                           className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white text-slate-950 font-bold px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500"
                           />
 
                           <button
@@ -442,7 +443,7 @@ function ProductCard({
                     onFocus={(e) =>
                       e.stopPropagation()
                     }
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full min-w-0 flex-1 rounded-xl border border-slate-300 bg-white text-black font-bold text-base px-3 py-3 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   />
 
                   <button
@@ -487,6 +488,8 @@ export default function Home() {
 
   const [sales, setSales] =
     useState<Sale[]>([]);
+    const [selectedSalesDate, setSelectedSalesDate] =
+  useState<string>("");
 
   const [activeShop, setActiveShop] =
     useState<number | null>(null);
@@ -529,8 +532,17 @@ export default function Home() {
     useState<number | null>(null);
 
   useEffect(() => {
-    loadDashboard();
-  }, []);
+  setSelectedSalesDate(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Africa/Nairobi",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date())
+  );
+
+  loadDashboard();
+}, []);
 
   async function loadDashboard() {
     const {
@@ -582,8 +594,8 @@ export default function Home() {
     } = await supabase
       .from("sales")
       .select(
-        "shop_id, product_id, quantity, total_price, brand"
-      );
+  "shop_id, product_id, quantity, total_price, brand, created_at"
+);
 
     if (salesError) {
       console.error(
@@ -1000,33 +1012,53 @@ export default function Home() {
   }
 
   function getShopSales(
-    shopId: number
-  ) {
-    return sales
-      .filter(
-        (sale) =>
-          sale.shop_id === shopId
-      )
-      .reduce(
-        (sum, sale) =>
-          sum +
-          Number(
-            sale.total_price
-          ),
-        0
-      );
-  }
+  shopId: number
+) {
+  return sales
+    .filter((sale) => {
+      if (!sale.created_at) return false;
 
-  function getTotalSales() {
-    return sales.reduce(
+      const saleDate =
+        new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Africa/Nairobi",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date(sale.created_at));
+
+      return (
+        sale.shop_id === shopId &&
+        saleDate === selectedSalesDate
+      );
+    })
+    .reduce(
       (sum, sale) =>
-        sum +
-        Number(
-          sale.total_price
-        ),
+        sum + Number(sale.total_price),
       0
     );
-  }
+}
+
+  function getTotalSales() {
+  return sales
+    .filter((sale) => {
+      if (!sale.created_at) return false;
+
+      const saleDate =
+        new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Africa/Nairobi",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date(sale.created_at));
+
+      return saleDate === selectedSalesDate;
+    })
+    .reduce(
+      (sum, sale) =>
+        sum + Number(sale.total_price),
+      0
+    );
+}
 
   function getProductStock(
     shopId: number,
@@ -1104,11 +1136,36 @@ const brandB = b.brand || "";
     });
 
   const visibleSales =
-    profile?.role === "admin"
-      ? sales
-      : sales.filter(
-          (sale) => sale.shop_id === profile?.shop_id
+  profile?.role === "admin"
+    ? sales.filter((sale) => {
+        if (!sale.created_at) return false;
+
+        const saleDate =
+          new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Africa/Nairobi",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).format(new Date(sale.created_at));
+
+        return saleDate === selectedSalesDate;
+      })
+    : sales.filter((sale) => {
+        if (!sale.created_at) return false;
+
+        const saleDate =
+          new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Africa/Nairobi",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).format(new Date(sale.created_at));
+
+        return (
+          sale.shop_id === profile?.shop_id &&
+          saleDate === selectedSalesDate
         );
+      });
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200">
@@ -1331,7 +1388,35 @@ const brandB = b.brand || "";
               </div>
             </section>
           )}
+{/* SALES DATE SELECTOR */}
+<section className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm mb-5">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <p className="text-xs uppercase tracking-wider font-bold text-emerald-600">
+        Sales Date
+      </p>
 
+      <h2 className="text-xl font-black text-slate-950 mt-1">
+        View Sales for a Specific Day
+      </h2>
+
+      <p className="text-sm text-slate-500 mt-1">
+        Select a date to view that day's sales and history.
+      </p>
+    </div>
+
+    <div className="w-full sm:w-auto">
+      <input
+        type="date"
+        value={selectedSalesDate}
+        onChange={(e) =>
+          setSelectedSalesDate(e.target.value)
+        }
+        className="w-full sm:w-auto rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-emerald-500"
+      />
+    </div>
+  </div>
+</section>
         {/* SALES SUMMARY */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
