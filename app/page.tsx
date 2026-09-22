@@ -1168,13 +1168,13 @@ const brandB = b.brand || "";
       });
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200">
+ <main className="min-h-screen bg-[#6CABDD]">
       {/* HEADER */}
-      <header className="sticky top-0 z-40 bg-slate-950 text-white shadow-xl">
+      <header className="sticky top-0 z-40 bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white shadow-xl shadow-slate-900/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 sm:py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg">
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
                 <span className="font-black text-lg">
                   SG
                 </span>
@@ -1185,7 +1185,7 @@ const brandB = b.brand || "";
                   SUPER GAS
                 </h1>
 
-                <p className="text-slate-400 text-xs sm:text-sm">
+              <p className="text-emerald-200/70 text-xs sm:text-sm">
                   Stock & Sales Management
                 </p>
               </div>
@@ -1194,7 +1194,7 @@ const brandB = b.brand || "";
             <button
               type="button"
               onClick={logout}
-              className="bg-white/10 hover:bg-white/20 border border-white/10 px-4 py-2.5 rounded-xl text-sm font-bold transition"
+             className="bg-white/10 hover:bg-emerald-500/20 border border-white/10 hover:border-emerald-400/30 px-4 py-2.5 rounded-xl text-sm font-bold transition"
             >
               Logout
             </button>
@@ -1221,12 +1221,12 @@ const brandB = b.brand || "";
             </div>
 
             {activeShopData && (
-              <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
+             <div className="bg-white border border-emerald-100 rounded-2xl px-4 py-3 shadow-md shadow-emerald-100/40">
                 <p className="text-xs uppercase tracking-wider font-bold text-slate-400">
                   Active Shop
                 </p>
 
-                <p className="font-black text-slate-900">
+                <p className="font-black text-emerald-700">
                   {activeShopData.name}
                 </p>
               </div>
@@ -1236,7 +1236,7 @@ const brandB = b.brand || "";
 
         {/* SHOP SELECTOR */}
         {profile?.role === "admin" && (
-          <section className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 p-3 sm:p-5 mb-5 sm:mb-7">
+          <section className="bg-white rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/50 border border-emerald-100 p-3 sm:p-5 mb-5 sm:mb-7">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-black text-slate-900">
@@ -1257,8 +1257,8 @@ const brandB = b.brand || "";
                   onClick={() => setActiveShop(shop.id)}
                   className={`py-2 px-1.5 sm:py-3 sm:px-2 rounded-xl sm:rounded-2xl font-black text-xs sm:text-base transition ${
                     activeShop === shop.id
-                      ? "bg-slate-950 text-white shadow-lg"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+  ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-lg shadow-emerald-500/25"
+  : "bg-slate-100 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
                   }`}
                 >
                   {shop.name}
@@ -1288,17 +1288,17 @@ const brandB = b.brand || "";
             shops.map((shop) => (
               <div
                 key={shop.id}
-                className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-3 sm:p-5 shadow-sm"
+               className="bg-white rounded-2xl sm:rounded-3xl border border-emerald-100 p-3 sm:p-5 shadow-md shadow-emerald-100/40 hover:shadow-lg hover:-translate-y-0.5 transition-all"
               >
                 <div className="flex justify-between items-start">
                   <p className="text-sm font-semibold text-slate-500">
                     {shop.name}
                   </p>
 
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1 shadow-sm shadow-emerald-500" />
                 </div>
 
-                <p className="text-4xl font-black text-slate-950 mt-2">
+                <p className="text-4xl font-black text-emerald-600 mt-2">
                   {getShopStock(shop.id)}
                 </p>
 
